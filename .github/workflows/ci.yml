@@ -1,0 +1,41 @@
+name: CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+
+      - name: Download Maven dependencies
+        run: mvn clean install -DskipTests
+
+      - name: Run tests
+        run: mvn test
+
+      - name: Package the application
+        run: mvn package -DskipTests
+
+      - name: Copy jar file to deployment folder
+        run: |
+          mkdir deployment
+          cp target/*.jar deployment/
+
+      - name: Create a zip artifact
+        run: |
+          cd deployment
+          zip -r cinecolombia-app.zip .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: cinecolombia-app
+          path: deployment/cinecolombia-app.zip
